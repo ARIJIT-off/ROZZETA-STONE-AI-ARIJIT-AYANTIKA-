@@ -1,4 +1,5 @@
-# Rozzeta Stone — AI Language Decipherment Engine
+# ROZZETA-STONE-AI-ARIJIT-AYANTIKA-
+AI Language Decipherment Engine
 
 Answer questions in Bangla and watch AI decipher your grammar patterns in real time.
 
@@ -6,7 +7,7 @@ Answer questions in Bangla and watch AI decipher your grammar patterns in real t
 
 ### 1. Add your Anthropic API Key
 
-Inside the `server/` folder, create a file called `.env`:
+Inside the project root folder, create a file called `.env`:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-your-key-here
@@ -17,16 +18,16 @@ Get a key at [console.anthropic.com](https://console.anthropic.com).
 ### 2. Install dependencies & start the server
 
 ```bash
-cd server
 npm install
-npm start
+node server.js
 ```
 
-The server starts at **http://localhost:3001**
+The server starts at **http://localhost:3012**
 
 ### 3. Open the frontend
 
-Open **`Rozzeta Stone.html`** directly in your browser (double-click it).
+Open the app in your browser at:
+**http://localhost:3012/Rozzeta Stone.html**
 
 ---
 
@@ -35,10 +36,9 @@ Open **`Rozzeta Stone.html`** directly in your browser (double-click it).
 ```
 ROZZETA STONE APP/
 ├── Rozzeta Stone.html   ← Frontend (React, no build needed)
-└── server/
-    ├── server.js        ← Express backend
-    ├── package.json
-    └── .env             ← Your API key (create this, never commit)
+├── server.js            ← Express backend
+├── package.json
+└── .env                 ← Your API key (create this, never commit)
 ```
 
 ## How It Works
