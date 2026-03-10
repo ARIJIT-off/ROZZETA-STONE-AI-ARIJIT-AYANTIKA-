@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rozzeta Stone — AI Language Decipherment</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@300;400&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    :root {
+      --stone: #1a1410;
+      --parchment: #f5ead6;
+      --gold: #c9a84c;
+      --gold-bright: #e8c96a;
+      --copper: #b87333;
+      --ink: #2d1f0e;
+      --mist: #8b7355;
+      --glow: rgba(201, 168, 76, 0.15);
+      --red-accent: #8b2020;
+      --teal-accent: #1a6b6b;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--stone);
+      color: var(--parchment);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+
+    .bg-hieroglyph {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse at 20% 20%, rgba(201, 168, 76, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(184, 115, 51, 0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(26, 107, 107, 0.04) 0%, transparent 70%);
+    }
+
+    .floating-glyphs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .glyph {
+      position: absolute;
+      font-family: 'Cinzel', serif;
+      color: rgba(201, 168, 76, 0.04);
+      font-size: clamp(40px, 8vw, 120px);
+      animation: drift linear infinite;
+      user-select: none;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+      }
+
+      10% {
+        opacity: 1;
+      }
+
+      90% {
+        opacity: 1;
+      }
+
+      to {
+        transform: translateY(-200px) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* HEADER */
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 2rem 3rem;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(10px);
+      background: rgba(26, 20, 16, 0.8);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--gold), var(--copper));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cinzel', serif;
+      font-size: 20px;
+      color: var(--stone);
+      font-weight: 900;
+      box-shadow: 0 0 20px rgba(201, 168, 76, 0.3);
+    }
+
+    .logo-text {
+      font-family: 'Cinzel', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      background: linear-gradient(135deg, var(--gold-bright), var(--gold), var(--copper));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-sub {
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: var(--mist);
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    nav {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--mist);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.5rem 0;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .nav-btn:hover,
+    .nav-btn.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+
+    /* MAIN CONTENT */
+    main {
+      position: relative;
+      z-index: 10;
+    }
+
+    /* HERO */
+    .hero {
+      padding: 6rem 3rem 4rem;
+      text-align: center;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.4em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #fff 0%, var(--gold-bright) 40%, var(--gold) 70%, var(--copper) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-tagline {
+      font-size: 1.1rem;
+      color: var(--mist);
+      font-style: italic;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-desc {
+      font-size: 0.95rem;
+      color: rgba(245, 234, 214, 0.6);
+      max-width: 600px;
+      margin: 0 auto 3rem;
+      line-height: 1.8;
+    }
+
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: linear-gradient(135deg, var(--gold), var(--copper));
+      color: var(--stone);
+      border: none;
+      cursor: pointer;
+      padding: 1rem 2.5rem;
+      border-radius: 4px;
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      box-shadow: 0 4px 20px rgba(201, 168, 76, 0.3);
+    }
+
+    .hero-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(201, 168, 76, 0.5);
+    }
+
+    /* STATS ROW */
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 4rem;
+      padding: 2rem 3rem;
+      border-top: 1px solid rgba(201, 168, 76, 0.1);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+      background: rgba(201, 168, 76, 0.03);
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Cinzel', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gold-bright);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--mist);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+    }
+
+    /* SECTION */
+    .section {
+      padding: 4rem 3rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--gold-bright);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(201, 168, 76, 0.4), transparent);
+    }
+
+    .section-sub {
+      color: var(--mist);
+      font-size: 0.9rem;
+      margin-bottom: 2.5rem;
+      font-style: italic;
+    }
+
+    /* CHAT INTERFACE */
+    .chat-container {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 2rem;
+    }
+
+    .chat-main {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(201, 168, 76, 0.15);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 1.2rem 1.5rem;
+      background: rgba(201, 168, 76, 0.05);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chat-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      color: var(--gold);
+    }
+
+    .progress-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .progress-bar {
+      width: 200px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--gold), var(--copper));
+      transition: width 0.5s ease;
+    }
+
+    .progress-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--mist);
+    }
+
+    .chat-messages {
+      height: 420px;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      scroll-behavior: smooth;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(201, 168, 76, 0.3);
+      border-radius: 2px;
+    }
+
+    .msg {
+      max-width: 80%;
+      animation: msgIn 0.3s ease;
+    }
+
+    @keyframes msgIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .msg-ai {
+      align-self: flex-start;
+    }
+
+    .msg-user {
+      align-self: flex-end;
+    }
+
+    .msg-bubble {
+      padding: 0.9rem 1.2rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .msg-ai .msg-bubble {
+      background: rgba(201, 168, 76, 0.08);
+      border: 1px solid rgba(201, 168, 76, 0.2);
+      color: var(--parchment);
+    }
+
+    .msg-user .msg-bubble {
+      background: rgba(26, 107, 107, 0.2);
+      border: 1px solid rgba(26, 107, 107, 0.4);
+      color: var(--parchment);
+      text-align: right;
+    }
+
+    .msg-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--mist);
+      margin-bottom: 0.3rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .msg-user .msg-label {
+      text-align: right;
+    }
+
+    .concept-tag {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 20px;
+      background: rgba(201, 168, 76, 0.1);
+      border: 1px solid rgba(201, 168, 76, 0.2);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .chat-input-area {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid rgba(201, 168, 76, 0.15);
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(201, 168, 76, 0.2);
+      border-radius: 6px;
+      color: var(--parchment);
+      padding: 0.8rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .chat-input::placeholder {
+      color: rgba(139, 115, 85, 0.5);
+    }
+
+    .chat-input:focus {
+      border-color: rgba(201, 168, 76, 0.5);
+    }
+
+    .send-btn {
+      background: linear-gradient(135deg, var(--gold), var(--copper));
+      border: none;
+      color: var(--stone);
+      cursor: pointer;
+      padding: 0.8rem 1.5rem;
+      border-radius: 6px;
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+
+    .send-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(201, 168, 76, 0.3);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* LIVE PANEL */
+    .live-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .panel-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(201, 168, 76, 0.15);
+      border-radius: 8px;
+      padding: 1.2rem;
+    }
+
+    .panel-card-title {
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      color: var(--gold);
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.4;
+        transform: scale(0.8);
+      }
+    }
+
+    .gram-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.08);
+    }
+
+    .gram-item:last-child {
+      border-bottom: none;
+    }
+
+    .gram-name {
+      font-size: 0.8rem;
+      color: var(--parchment);
+    }
+
+    .gram-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+    }
+
+    .gram-status.detected {
+      background: rgba(26, 107, 107, 0.2);
+      color: #4ecdc4;
+      border: 1px solid rgba(78, 205, 196, 0.3);
+    }
+
+    .gram-status.pending {
+      background: rgba(139, 115, 85, 0.1);
+      color: var(--mist);
+      border: 1px solid rgba(139, 115, 85, 0.2);
+    }
+
+    .gram-status.analyzing {
+      background: rgba(201, 168, 76, 0.1);
+      color: var(--gold);
+      border: 1px solid rgba(201, 168, 76, 0.3);
+    }
+
+    /* QUICK ANALYZER */
+    .quick-analyze {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(201, 168, 76, 0.15);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .qa-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(201, 168, 76, 0.2);
+      border-radius: 6px;
+      color: var(--parchment);
+      padding: 0.8rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      resize: none;
+      margin-bottom: 0.75rem;
+      transition: border-color 0.3s;
+    }
+
+    .qa-input:focus {
+      border-color: rgba(201, 168, 76, 0.5);
+    }
+
+    .qa-result {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: rgba(201, 168, 76, 0.04);
+      border: 1px solid rgba(201, 168, 76, 0.1);
+      border-radius: 6px;
+    }
+
+    .qa-insight {
+      font-style: italic;
+      color: var(--gold);
+      font-size: 0.9rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .qa-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .qa-tag {
+      padding: 0.25rem 0.6rem;
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .qa-tag.verb {
+      background: rgba(139, 32, 32, 0.2);
+      color: #e87878;
+      border: 1px solid rgba(139, 32, 32, 0.3);
+    }
+
+    .qa-tag.noun {
+      background: rgba(26, 107, 107, 0.2);
+      color: #4ecdc4;
+      border: 1px solid rgba(78, 205, 196, 0.3);
+    }
+
+    .qa-tag.order {
+      background: rgba(201, 168, 76, 0.1);
+      color: var(--gold);
+      border: 1px solid rgba(201, 168, 76, 0.3);
+    }
+
+    /* DASHBOARD / RESULTS */
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .result-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(201, 168, 76, 0.15);
+      border-radius: 8px;
+      padding: 1.5rem;
+      transition: border-color 0.3s;
+    }
+
+    .result-card:hover {
+      border-color: rgba(201, 168, 76, 0.35);
+    }
+
+    .rc-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--mist);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin-bottom: 0.5rem;
+    }
+
+    .rc-value {
+      font-family: 'Cinzel', serif;
+      font-size: 1.4rem;
+      color: var(--gold-bright);
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+
+    .rc-detail {
+      font-size: 0.8rem;
+      color: rgba(245, 234, 214, 0.5);
+      line-height: 1.5;
+    }
+
+    .confidence-bar {
+      margin-top: 0.75rem;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 2px;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--teal-accent), var(--gold));
+      transition: width 1s ease;
+    }
+
+    /* SIMILARITY CHART */
+    .similarity-section {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(201, 168, 76, 0.15);
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .sim-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.1rem;
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+    }
+
+    .sim-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .sim-lang {
+      width: 130px;
+      font-size: 0.85rem;
+      color: var(--parchment);
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .sim-bar-wrap {
+      flex: 1;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .sim-bar {
+      height: 100%;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      padding-left: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 400;
+      color: var(--stone);
+      transition: width 1.2s ease;
+    }
+
+    .sim-reason {
+      width: 200px;
+      font-size: 0.72rem;
+      color: rgba(245, 234, 214, 0.4);
+      flex-shrink: 0;
+      font-style: italic;
+    }
+
+    /* GRAMMAR SUMMARY */
+    .gram-summary {
+      background: rgba(201, 168, 76, 0.04);
+      border: 1px solid rgba(201, 168, 76, 0.15);
+      border-left: 3px solid var(--gold);
+      border-radius: 0 8px 8px 0;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .gram-summary-text {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: var(--parchment);
+      font-style: italic;
+    }
+
+    .unique-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .feature-badge {
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      background: rgba(201, 168, 76, 0.08);
+      border: 1px solid rgba(201, 168, 76, 0.25);
+      font-size: 0.8rem;
+      color: var(--gold);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* CONVERSATION LOG */
+    .conv-log {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .conv-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(201, 168, 76, 0.1);
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+    }
+
+    .conv-item-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      align-items: center;
+    }
+
+    .conv-q {
+      font-size: 0.8rem;
+      color: var(--mist);
+    }
+
+    .conv-concept-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      padding: 0.15rem 0.4rem;
+      background: rgba(139, 32, 32, 0.15);
+      border: 1px solid rgba(139, 32, 32, 0.3);
+      color: #e87878;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+
+    .conv-a {
+      font-size: 0.95rem;
+      color: var(--parchment);
+    }
+
+    /* LOADING */
+    .loading-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 5rem 2rem;
+      text-align: center;
+    }
+
+    .loading-glyph {
+      font-family: 'Cinzel', serif;
+      font-size: 4rem;
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+      animation: spin 3s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-text {
+      font-family: 'Cinzel', serif;
+      font-size: 1.2rem;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+    }
+
+    .loading-sub {
+      color: var(--mist);
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    /* TYPING INDICATOR */
+    .typing {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 0.5rem 0;
+    }
+
+    .typing span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      opacity: 0.4;
+      animation: typingBounce 1.2s infinite;
+    }
+
+    .typing span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingBounce {
+
+      0%,
+      100% {
+        transform: translateY(0);
+        opacity: 0.4;
+      }
+
+      50% {
+        transform: translateY(-4px);
+        opacity: 1;
+      }
+    }
+
+    /* TABS */
+    .tab-row {
+      display: flex;
+      gap: 0;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.2);
+    }
+
+    .tab-btn {
+      padding: 0.75rem 1.5rem;
+      background: none;
+      border: none;
+      color: var(--mist);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.3s;
+    }
+
+    .tab-btn:hover {
+      color: var(--parchment);
+    }
+
+    .tab-btn.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+
+    /* RESET BTN */
+    .reset-btn {
+      background: rgba(139, 32, 32, 0.15);
+      border: 1px solid rgba(139, 32, 32, 0.3);
+      color: #e87878;
+      cursor: pointer;
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      transition: all 0.3s;
+    }
+
+    .reset-btn:hover {
+      background: rgba(139, 32, 32, 0.25);
+    }
+
+    /* API KEY BANNER */
+    .api-banner {
+      background: rgba(139, 32, 32, 0.15);
+      border: 1px solid rgba(139, 32, 32, 0.4);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: #e87878;
+    }
+
+    .api-banner a {
+      color: var(--gold-bright);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .chat-container {
+        grid-template-columns: 1fr;
+      }
+
+      .results-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      nav {
+        display: none;
+      }
+
+      .stats-row {
+        gap: 2rem;
+        flex-wrap: wrap;
+      }
+
+      .sim-reason {
+        display: none;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        padding: 1rem 1.5rem;
+      }
+
+      .section {
+        padding: 2rem 1.5rem;
+      }
+
+      .hero {
+        padding: 3rem 1.5rem 2rem;
+      }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--mist);
+      font-style: italic;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grain"></div>
+  <div class="bg-hieroglyph"></div>
+  <div class="floating-glyphs" id="glyphs"></div>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    // Backend server URL — update if your server runs on a different port
+    const SERVER_URL = 'http://localhost:3012';
+
+    const GRAMMAR_FEATURES = [
+      { id: 'wordOrder', label: 'Word Order (SOV?)' },
+      { id: 'verbConjugation', label: 'Verb Conjugation' },
+      { id: 'postpositions', label: 'Postpositions' },
+      { id: 'agglutination', label: 'Agglutinative Morphology' },
+      { id: 'tenses', label: 'Tense System' },
+      { id: 'honorifics', label: 'Honorific System' },
+    ];
+
+    const FEATURE_MAP = {
+      'past tense/food': ['tenses', 'verbConjugation'],
+      'future tense/planning': ['tenses'],
+      'adjective placement': ['wordOrder'],
+      'object-verb ordering': ['wordOrder', 'postpositions'],
+      'emotion/state verbs': ['verbConjugation'],
+      'conditional sentences': ['verbConjugation', 'agglutination'],
+      'conjunctions/causality': ['agglutination'],
+      'family/relationships': ['postpositions'],
+      'greeting/identity': ['honorifics'],
+      'location/place': ['postpositions'],
+    };
+
+    // ─── API HELPERS ──────────────────────────────────────────────────────────────
+
+    async function apiStart() {
+      const res = await fetch(`${SERVER_URL}/api/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+      return res.json();
+    }
+
+    async function apiRespond(sessionId, answer) {
+      const res = await fetch(`${SERVER_URL}/api/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, answer })
+      });
+      return res.json();
+    }
+
+    async function apiQuickAnalyze(text) {
+      const res = await fetch(`${SERVER_URL}/api/quick-analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      return res.json();
+    }
+
+    // Floating glyphs setup
+    function setupGlyphs() {
+      const container = document.getElementById('glyphs');
+      if (!container || container.children.length > 0) return;
+      const symbols = ['𓂀', '𓃭', '𓆣', '𓇯', '𓈖', '𓉔', '𓊪', '𓌂', '𓍯', '𓎛', 'ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ', 'ছ', 'ज', 'क', 'ल', 'α', 'β', 'γ', 'Δ', 'Ω'];
+      for (let i = 0; i < 12; i++) {
+        const el = document.createElement('div');
+        el.className = 'glyph';
+        el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.animationDuration = (20 + Math.random() * 30) + 's';
+        el.style.animationDelay = (-Math.random() * 30) + 's';
+        el.style.fontSize = (30 + Math.random() * 80) + 'px';
+        container.appendChild(el);
+      }
+    }
+
+    // ─── COMPONENTS ───────────────────────────────────────────────────────────────
+
+    function TypingIndicator() {
+      return (
+        <div className="msg msg-ai">
+          <div className="msg-label">ROZZETA AI</div>
+          <div className="msg-bubble">
+            <div className="typing"><span /><span /><span /></div>
+          </div>
+        </div>
+      );
+    }
+
+    function GrammarLivePanel({ detected }) {
+      return (
+        <div className="panel-card">
+          <div className="panel-card-title">
+            <div className="live-dot" />
+            Live Grammar Detection
+          </div>
+          {GRAMMAR_FEATURES.map(f => {
+            const status = detected[f.id] || 'pending';
+            return (
+              <div className="gram-item" key={f.id}>
+                <span className="gram-name">{f.label}</span>
+                <span className={`gram-status ${status}`}>
+                  {status === 'detected' ? '✓ Found' : status === 'analyzing' ? '⟳ Checking' : '— Pending'}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function QuickAnalyzer() {
+      const [text, setText] = useState('');
+      const [result, setResult] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState(null);
+
+      async function analyze() {
+        if (!text.trim()) return;
+        setLoading(true);
+        setError(null);
+        try {
+          const r = await apiQuickAnalyze(text);
+          setResult(r);
+        } catch (e) {
+          setError('Could not reach the server. Make sure it is running on port 3001.');
+        }
+        setLoading(false);
+      }
+
+      return (
+        <div className="quick-analyze">
+          <div className="panel-card-title" style={{ marginBottom: '0.75rem' }}>
+            ⚡ Quick Bangla Snippet Analyzer
+          </div>
+          {error && <div className="api-banner">⚠ {error}</div>}
+          <textarea
+            className="qa-input"
+            rows={2}
+            placeholder="Paste any Bangla text here... (e.g. আমি বাড়ি যাচ্ছি)"
+            value={text}
+            onChange={e => setText(e.target.value)}
+          />
+          <button className="send-btn" onClick={analyze} disabled={loading || !text.trim()}>
+            {loading ? 'Analyzing...' : 'Analyze →'}
+          </button>
+          {result && (
+            <div className="qa-result">
+              <div className="qa-insight">"{result.quickInsight}"</div>
+              <div className="qa-tags">
+                <span className="qa-tag order">Word Order: {result.probableWordOrder}</span>
+                <span className="qa-tag order">Script: {result.detectedScript || result.scriptDetected}</span>
+                {(result.verbsDetected || []).map(v => <span key={v} className="qa-tag verb">VERB: {v}</span>)}
+                {(result.nounsDetected || []).map(n => <span key={n} className="qa-tag noun">NOUN: {n}</span>)}
+                {(result.suffixesSpotted || []).map(s => <span key={s} className="qa-tag order">SUFFIX: {s}</span>)}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function SimilarityChart({ langs }) {
+      const colors = [
+        'linear-gradient(90deg, #c9a84c, #e8c96a)',
+        'linear-gradient(90deg, #1a6b6b, #4ecdc4)',
+        'linear-gradient(90deg, #8b2020, #e87878)',
+        'linear-gradient(90deg, #4a3f6b, #9b8ec4)',
+        'linear-gradient(90deg, #2d5a27, #6dbf67)',
+      ];
+      return (
+        <div className="similarity-section">
+          <div className="sim-title">🌐 Language Similarity Mapping</div>
+          {langs.map((l, i) => (
+            <div className="sim-item" key={l.language}>
+              <div className="sim-lang">{l.language}</div>
+              <div className="sim-bar-wrap">
+                <div className="sim-bar" style={{ width: `${l.similarity}%`, background: colors[i % colors.length] }}>
+                  {l.similarity}%
+                </div>
+              </div>
+              <div className="sim-reason">{l.reason}</div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function ResultsDashboard({ analysis, responses }) {
+      const [tab, setTab] = useState('overview');
+
+      const cards = [
+        { label: 'Word Order', value: analysis.wordOrder?.pattern || '—', detail: analysis.wordOrder?.evidence, conf: analysis.wordOrder?.confidence },
+        { label: 'Morphology', value: analysis.morphology?.type || '—', detail: analysis.morphology?.evidence, conf: analysis.morphology?.confidence },
+        { label: 'Language Family', value: analysis.languageFamily || '—', detail: `${analysis.verbSystem?.tenses?.join(', ') || ''} tenses detected`, conf: analysis.overallConfidence },
+        { label: 'Tenses Found', value: (analysis.verbSystem?.tenses?.length || 0) + ' tenses', detail: analysis.verbSystem?.evidence, conf: analysis.verbSystem?.confidence },
+        { label: 'Case System', value: (analysis.nounSystem?.casesDetected?.length || 0) + ' cases', detail: analysis.nounSystem?.evidence, conf: analysis.nounSystem?.confidence },
+        { label: 'Overall Confidence', value: (analysis.overallConfidence || 0) + '%', detail: 'Grammar inference confidence', conf: analysis.overallConfidence },
+      ];
+
+      return (
+        <div>
+          <div className="tab-row">
+            {['overview', 'similarity', 'conversation'].map(t => (
+              <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {tab === 'overview' && (
+            <>
+              <div className="gram-summary">
+                <div className="gram-summary-text">"{analysis.grammarSummary}"</div>
+                <div className="unique-features">
+                  {(analysis.uniqueFeatures || []).map(f => (
+                    <span key={f} className="feature-badge">{f}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="results-grid">
+                {cards.map(c => (
+                  <div className="result-card" key={c.label}>
+                    <div className="rc-label">{c.label}</div>
+                    <div className="rc-value">{c.value}</div>
+                    <div className="rc-detail">{c.detail}</div>
+                    {c.conf && (
+                      <div className="confidence-bar">
+                        <div className="confidence-fill" style={{ width: `${c.conf}%` }} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {tab === 'similarity' && (
+            <SimilarityChart langs={analysis.similarLanguages || []} />
+          )}
+
+          {tab === 'conversation' && (
+            <div className="conv-log">
+              {responses.map((r, i) => (
+                <div className="conv-item" key={i}>
+                  <div className="conv-item-header">
+                    <div className="conv-q">Q{i + 1}: {r.question}</div>
+                    <span className="conv-concept-tag">{r.concept}</span>
+                  </div>
+                  <div className="conv-a">{r.answer}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ─── MAIN APP ─────────────────────────────────────────────────────────────────
+    function App() {
+      const [view, setView] = useState('home');
+      const [messages, setMessages] = useState([]);
+      const [inputVal, setInputVal] = useState('');
+      const [sessionId, setSessionId] = useState(null);
+      const [currentQ, setCurrentQ] = useState(0);
+      const [totalQ, setTotalQ] = useState(10);
+      const [responses, setResponses] = useState([]);
+      const [detectedFeatures, setDetectedFeatures] = useState({});
+      const [isTyping, setIsTyping] = useState(false);
+      const [analysis, setAnalysis] = useState(null);
+      const [serverError, setServerError] = useState(false);
+      const messagesEnd = useRef(null);
+
+      useEffect(() => { setupGlyphs(); }, []);
+      useEffect(() => { messagesEnd.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isTyping]);
+
+      async function startSession() {
+        setView('chat');
+        setMessages([]);
+        setResponses([]);
+        setCurrentQ(0);
+        setDetectedFeatures({});
+        setAnalysis(null);
+        setServerError(false);
+
+        try {
+          const data = await apiStart();
+          setSessionId(data.sessionId);
+          setTotalQ(data.total);
+          setTimeout(() => addAIMessage(data.question.english, data.question.concept), 400);
+        } catch (e) {
+          setServerError(true);
+          addAIMessage('⚠ Cannot connect to the backend server. Please start the server with "npm start" in the server folder and refresh.', '');
+        }
+      }
+
+      function addAIMessage(text, concept) {
+        setMessages(prev => [...prev, { role: 'ai', text, concept }]);
+      }
+
+      function addUserMessage(text) {
+        setMessages(prev => [...prev, { role: 'user', text }]);
+      }
+
+      function updateFeatureFromConcept(concept) {
+        const features = FEATURE_MAP[concept] || [];
+        if (features.length === 0) return;
+        setDetectedFeatures(prev => {
+          const next = { ...prev };
+          features.forEach(f => { next[f] = 'detected'; });
+          return next;
+        });
+      }
+
+      async function handleSend() {
+        const val = inputVal.trim();
+        if (!val || isTyping || serverError) return;
+        setInputVal('');
+        addUserMessage(val);
+        setIsTyping(true);
+
+        try {
+          const data = await apiRespond(sessionId, val);
+
+          if (data.status === 'continue') {
+            const newQ = data.progress;
+            setCurrentQ(newQ);
+            setResponses(prev => [...prev, { question: messages.filter(m => m.role === 'ai').slice(-1)[0]?.text || '', answer: val, concept: data.question.concept }]);
+            updateFeatureFromConcept(data.question.concept);
+            await new Promise(r => setTimeout(r, 600));
+            setIsTyping(false);
+            addAIMessage(data.question.english, data.question.concept);
+
+          } else if (data.status === 'complete') {
+            setResponses(data.responses);
+            setIsTyping(false);
+            addAIMessage("Excellent! I've now gathered enough data. Analyzing grammar patterns... 🔬", 'analysis');
+            await new Promise(r => setTimeout(r, 1000));
+            setView('analyzing');
+            setAnalysis(data.analysis);
+            setView('results');
+          }
+        } catch (e) {
+          setIsTyping(false);
+          addAIMessage('⚠ Server error. Please check your backend is running.', '');
+        }
+      }
+
+      function handleKey(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+      }
+
+      const progress = currentQ / totalQ;
+
+      return (
+        <>
+          <header>
+            <div className="logo">
+              <div className="logo-icon">𓂀</div>
+              <div>
+                <div className="logo-text">Rozzeta Stone</div>
+                <div className="logo-sub">AI Language Decipherment Engine</div>
+              </div>
+            </div>
+            <nav>
+              <button className={`nav-btn ${view === 'home' ? 'active' : ''}`} onClick={() => setView('home')}>Home</button>
+              <button className={`nav-btn ${view === 'chat' || view === 'analyzing' ? 'active' : ''}`} onClick={() => startSession()}>Decipher</button>
+              <button className={`nav-btn ${view === 'results' ? 'active' : ''}`} onClick={() => analysis && setView('results')}>Dashboard</button>
+            </nav>
+          </header>
+
+          <main>
+            {/* HOME VIEW */}
+            {view === 'home' && (
+              <>
+                <div className="hero">
+                  <div className="hero-eyebrow">✦ Computational Linguistics × Artificial Intelligence ✦</div>
+                  <div className="hero-title">No Dictionary.<br />No Rules. Just AI.</div>
+                  <div className="hero-tagline">— Rozzeta Stone</div>
+                  <div className="hero-desc">
+                    Answer questions in Bangla. Watch as AI deciphers grammar rules, infers syntax patterns, and maps your language to the world's linguistic families — in real time.
+                  </div>
+                  <button className="hero-cta" onClick={startSession}>
+                    ✦ Begin Decipherment
+                  </button>
+                </div>
+                <div className="stats-row">
+                  <div className="stat"><div className="stat-num">10</div><div className="stat-label">Questions</div></div>
+                  <div className="stat"><div className="stat-num">6</div><div className="stat-label">Grammar Features</div></div>
+                  <div className="stat"><div className="stat-num">20+</div><div className="stat-label">Languages Compared</div></div>
+                  <div className="stat"><div className="stat-num">AI</div><div className="stat-label">Powered Analysis</div></div>
+                </div>
+                <div className="section">
+                  <div className="section-title">Quick Snippet Analyzer</div>
+                  <div className="section-sub">Paste any Bangla text for instant linguistic analysis</div>
+                  <QuickAnalyzer />
+                </div>
+              </>
+            )}
+
+            {/* CHAT VIEW */}
+            {view === 'chat' && (
+              <div className="section">
+                <div className="section-title">Live Decipherment Session</div>
+                <div className="section-sub">Answer in Bangla — AI asks in English</div>
+                {serverError && (
+                  <div className="api-banner">
+                    ⚠ Backend server not reachable. Run <strong>npm start</strong> inside the <strong>server/</strong> folder, then refresh this page.
+                  </div>
+                )}
+                <div className="chat-container">
+                  <div className="chat-main">
+                    <div className="chat-header">
+                      <div className="chat-title">✦ Bilingual Interrogation Engine</div>
+                      <div className="progress-bar-wrap">
+                        <div className="progress-bar">
+                          <div className="progress-fill" style={{ width: `${progress * 100}%` }} />
+                        </div>
+                        <div className="progress-label">{currentQ}/{totalQ}</div>
+                      </div>
+                    </div>
+                    <div className="chat-messages">
+                      {messages.map((m, i) => (
+                        <div key={i} className={`msg msg-${m.role}`}>
+                          <div className="msg-label">{m.role === 'ai' ? 'ROZZETA AI' : 'YOU (BANGLA)'}</div>
+                          <div className="msg-bubble">
+                            {m.text}
+                            {m.role === 'ai' && m.concept && m.concept !== 'analysis' && (
+                              <div><span className="concept-tag">Testing: {m.concept}</span></div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {isTyping && <TypingIndicator />}
+                      <div ref={messagesEnd} />
+                    </div>
+                    <div className="chat-input-area">
+                      <input
+                        className="chat-input"
+                        placeholder="Type your answer in Bangla... (বাংলায় উত্তর দিন)"
+                        value={inputVal}
+                        onChange={e => setInputVal(e.target.value)}
+                        onKeyDown={handleKey}
+                        disabled={isTyping || serverError}
+                      />
+                      <button className="send-btn" onClick={handleSend} disabled={isTyping || !inputVal.trim() || serverError}>
+                        Send →
+                      </button>
+                    </div>
+                  </div>
+                  <div className="live-panel">
+                    <GrammarLivePanel detected={detectedFeatures} />
+                    <div className="panel-card">
+                      <div className="panel-card-title">Session Info</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--mist)', lineHeight: '1.8' }}>
+                        <div>Language: <span style={{ color: 'var(--parchment)' }}>Bangla (Bengali)</span></div>
+                        <div>Script: <span style={{ color: 'var(--parchment)' }}>Bengali Unicode</span></div>
+                        <div>Questions Left: <span style={{ color: 'var(--gold)' }}>{totalQ - currentQ}</span></div>
+                      </div>
+                      <div style={{ marginTop: '1rem' }}>
+                        <button className="reset-btn" onClick={startSession}>↺ Restart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ANALYZING VIEW */}
+            {view === 'analyzing' && (
+              <div className="loading-state">
+                <div className="loading-glyph">𓂀</div>
+                <div className="loading-text">Deciphering Grammar Patterns...</div>
+                <div className="loading-sub">Comparing against 20+ language families • Inferring syntax rules • Building similarity map</div>
+              </div>
+            )}
+
+            {/* RESULTS VIEW */}
+            {view === 'results' && analysis && (
+              <div className="section">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                  <div>
+                    <div className="section-title">Grammar Analysis Dashboard</div>
+                    <div className="section-sub">AI-inferred linguistics from your Bangla responses</div>
+                  </div>
+                  <button className="reset-btn" onClick={startSession} style={{ marginTop: '0.5rem' }}>↺ New Session</button>
+                </div>
+                <ResultsDashboard analysis={analysis} responses={responses} />
+              </div>
+            )}
+          </main>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+
+</html>
