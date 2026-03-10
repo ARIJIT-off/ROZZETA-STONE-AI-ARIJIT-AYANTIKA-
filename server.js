@@ -201,5 +201,5 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 const PORT = process.env.PORT || 3012;
 app.listen(PORT, () => {
   console.log(`\n✦ Rozzeta Stone server running at http://localhost:${PORT}`);
-  console.log(`  Open Rozzeta Stone.html in your browser\n`);
+  console.log(`  Open index.html in your browser\n`);
 });

@@ -1077,8 +1077,8 @@
   <script type="text/babel">
     const { useState, useEffect, useRef, useCallback } = React;
 
-    // Backend server URL — update if your server runs on a different port
-    const SERVER_URL = 'http://localhost:3012';
+    // Backend server URL — empty string means it will use the current domain (e.g. Render)
+    const SERVER_URL = '';
 
     const GRAMMAR_FEATURES = [
       { id: 'wordOrder', label: 'Word Order (SOV?)' },
